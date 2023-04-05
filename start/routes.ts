@@ -20,6 +20,8 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 
-Route.get('/', async () => {
-  return { hello: 'world' }
-})
+Route.get('/', 'SlugController.index')
+Route.post('/', 'SlugController.create')
+Route.put('/:id', 'SlugController.edit')
+Route.delete('/:id', 'SlugController.delete')
+
