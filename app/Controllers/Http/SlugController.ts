@@ -1,71 +1,38 @@
-import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Slug from 'App/Models/Slug'
 import Database from '@ioc:Adonis/Lucid/Database'
+import Slug from 'App/Models/Slug'
 
 export default class PostsController {
   public async index() {
     return await Slug.all()
   }
 
-  public async create({ request }: HttpContextContract) {
+  public async create() {
     const dbTransaction = await Database.transaction()
+    dbTransaction.once('commit', () => {
+      console.log('Transaction COMMITTED! ✅✅✅✅✅✅✅✅✅✅✅✅')
+    })
+    dbTransaction.once('rollback', () => {
+      console.log('Transaction ROLLED BACK! ❌❌❌❌❌❌❌❌❌❌❌❌❌')
+    })
     try {
-      const { name, slug } = request.all()
-      const newSlug = await Slug.create(
+      console.log('Before create', await Slug.all())
+      await Slug.create(
         {
-          name,
-          slug,
+          name: 'test',
+          slug: 'test',
         },
         {
           client: dbTransaction,
         }
       )
-      if (newSlug.name == 'RESTRICTED NAME') {
-        throw 'restricted name - rolling back'
-      }
+      console.log('After create', await Slug.all())
+      throw new Error('throwing error')
       await dbTransaction.commit()
-      return newSlug
+      return 'Done'
     } catch (e) {
       await dbTransaction.rollback()
-      return e
-    }
-  }
-
-  public async edit({ params, request }: HttpContextContract) {
-    const dbTransaction = await Database.transaction()
-    try {
-      const { id } = params
-      const { name, slug } = request.all()
-      const existingSlug = await Slug.find(id)
-      if (existingSlug) {
-        existingSlug.name = name
-        existingSlug.slug = slug
-        await existingSlug.save()
-        await dbTransaction.commit()
-        return existingSlug
-      }
-      throw 'record not found'
-    } catch (e) {
-      await dbTransaction.rollback()
+      console.log('After rollback', await Slug.all())
       throw e
-    }
-  }
-
-  public async delete({ params }: HttpContextContract) {
-    const dbTransaction = await Database.transaction()
-    try {
-      const { id } = params
-      const existingSlug = await Slug.find(id)
-      if (existingSlug) {
-        await existingSlug.delete()
-      } else {
-        throw 'record not found'
-      }
-      await dbTransaction.commit()
-      return 'record deleted'
-    } catch (e) {
-      await dbTransaction.rollback()
-      return e
     }
   }
 }

@@ -22,6 +22,3 @@ import Route from '@ioc:Adonis/Core/Route'
 
 Route.get('/', 'SlugController.index')
 Route.post('/', 'SlugController.create')
-Route.put('/:id', 'SlugController.edit')
-Route.delete('/:id', 'SlugController.delete')
-
